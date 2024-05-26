@@ -54,6 +54,12 @@ public class VirtualSshFile extends VirtualFile<SshFile> implements SshFile {
     }
 
     @Override
+    public boolean isExecutable() {
+        logger.trace("[{}] isExecutable()", name);
+        return delegate != null ? delegate.isExecutable() : true;
+    }
+
+    @Override
     public boolean create() throws IOException {
         logger.trace("[{}] create()", name);
         return delegate != null && ((SshFile) delegate).create();

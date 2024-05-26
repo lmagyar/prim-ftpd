@@ -69,6 +69,12 @@ public class SafSshFile extends SafFile<SshFile> implements SshFile {
     }
 
     @Override
+    public boolean isExecutable() {
+        logger.trace("[{}] isExecutable()", name);
+        return isDirectory;
+    }
+
+    @Override
     public boolean create() throws IOException {
         logger.trace("[{}] create()", name);
         return createNewFile();
