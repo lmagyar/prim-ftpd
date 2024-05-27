@@ -24,7 +24,7 @@ android {
     compileSdkVersion 33
 
     defaultConfig {
-        applicationId "org.primftpd"
+        applicationId "org.primftpd.lmagyar"
         minSdkVersion 15
         targetSdkVersion 33
         versionCode 65
