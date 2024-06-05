@@ -42,7 +42,12 @@ public class VirtualSshFileSystemView extends VirtualFileSystemView<
 
     @Override
     protected String absolute(String file) {
-        return Utils.absoluteSsh(file, "/" + PREFIX_FS + homeDir.getAbsolutePath());
+        if (".".equals(file) || "./".equals(file) || "/.".equals(file)) {
+            file = "~";
+        // } else if (file.startsWith("./")) {
+        //     file = file.substring(2);
+        }
+        return file;
     }
 
     @Override

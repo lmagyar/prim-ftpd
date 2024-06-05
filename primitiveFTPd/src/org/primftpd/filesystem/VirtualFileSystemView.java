@@ -49,28 +49,31 @@ public abstract class VirtualFileSystemView<
     public MinaType getFile(String file) {
         String absoluteVirtualPath = absolute(file);
         logger.debug("getFile '{}', absolute: '{}'", file, absoluteVirtualPath);
-        if ("/".equals(absoluteVirtualPath)) {
+        if ("/".equals(absoluteVirtualPath) || "~".equals(absoluteVirtualPath)) {
             return createFile(absoluteVirtualPath, null, true, pftpdService);
-        } else if (absoluteVirtualPath.startsWith("/" + PREFIX_FS)) {
-            String realPath = toRealPath(absoluteVirtualPath, "/" + PREFIX_FS);
-            // realPath = Paths.get(pftpdService.getPrefsBean().getStartDir().getAbsolutePath(), realPath).toString();
-            logger.debug("Using FS '{}' for '{}'", realPath, absoluteVirtualPath);
+        } else if (isStorageType(absoluteVirtualPath, PREFIX_FS)) {
+            String realPath = toRealPath(absoluteVirtualPath, PREFIX_FS);
             AbstractFile delegate = fsFileSystemView.getFile(realPath);
+            absoluteVirtualPath = "/" + PREFIX_FS + escapeRoot(delegate.getAbsolutePath());
+            logger.debug("Using FS '{}' for '{}'", realPath, absoluteVirtualPath);
             return createFile(absoluteVirtualPath, delegate, pftpdService);
-        } else if (absoluteVirtualPath.startsWith("/" + PREFIX_ROOT)) {
-            String realPath = toRealPath(absoluteVirtualPath, "/" + PREFIX_ROOT);
-            logger.debug("Using ROOT '{}' for '{}'", realPath, absoluteVirtualPath);
+        } else if (isStorageType(absoluteVirtualPath, PREFIX_ROOT)) {
+            String realPath = toRealPath(absoluteVirtualPath, PREFIX_ROOT);
             AbstractFile delegate = rootFileSystemView.getFile(realPath);
+            absoluteVirtualPath = "/" + PREFIX_ROOT + escapeRoot(delegate.getAbsolutePath());
+            logger.debug("Using ROOT '{}' for '{}'", realPath, absoluteVirtualPath);
             return createFile(absoluteVirtualPath, delegate, pftpdService);
-        } else if (absoluteVirtualPath.startsWith("/" + PREFIX_SAF)) {
-            String realPath = toRealPath(absoluteVirtualPath, "/" + PREFIX_SAF);
-            logger.debug("Using SAF '{}' for '{}'", realPath, absoluteVirtualPath);
+        } else if (isStorageType(absoluteVirtualPath, PREFIX_SAF)) {
+            String realPath = toRealPath(absoluteVirtualPath, PREFIX_SAF);
             AbstractFile delegate = safFileSystemView.getFile(realPath);
+            absoluteVirtualPath = "/" + PREFIX_SAF + escapeRoot(delegate.getAbsolutePath());
+            logger.debug("Using SAF '{}' for '{}'", realPath, absoluteVirtualPath);
             return createFile(absoluteVirtualPath, delegate, pftpdService);
-        } else if (absoluteVirtualPath.startsWith("/" + PREFIX_ROSAF)) {
-            String realPath = toRealPath(absoluteVirtualPath, "/" + PREFIX_ROSAF);
-            logger.debug("Using ROSAF '{}' for '{}'", realPath, absoluteVirtualPath);
+        } else if (isStorageType(absoluteVirtualPath, PREFIX_ROSAF)) {
+            String realPath = toRealPath(absoluteVirtualPath, PREFIX_ROSAF);
             AbstractFile delegate = roSafFileSystemView.getFile(realPath);
+            absoluteVirtualPath = "/" + PREFIX_ROSAF + escapeRoot(delegate.getAbsolutePath());
+            logger.debug("Using ROSAF '{}' for '{}'", realPath, absoluteVirtualPath);
             return createFile(absoluteVirtualPath, delegate, pftpdService);
         } else {
             logger.debug("Using VirtualFile for unknown path '{}'", absoluteVirtualPath);
@@ -78,11 +81,30 @@ public abstract class VirtualFileSystemView<
         }
     }
 
+    private boolean isStorageType(String path, String prefix) {
+        return path.equals(prefix) || path.equals("/" + prefix) || path.startsWith(prefix + "/") || path.startsWith("/" + prefix + "/");
+    }
+
     private String toRealPath(String path, String prefix) {
-        String realPath = path.substring(prefix.length());
-        if (realPath.isEmpty()) {
-            realPath = "/";
+        if (path.charAt(0) == '/') {
+            if (path.length() > prefix.length() + 2) {
+                return path.substring(prefix.length() + 1); // '/fs/xxx' -> '/xxx'
+            } else {
+                return "/";                                 // '/fs'     -> '/'
+            }
+        } else {
+            if (path.length() > prefix.length() + 1) {
+                return path.substring(prefix.length() + 1); // 'fs/xxx'  -> 'xxx'
+            } else {
+                return ".";                                 // 'fs'      -> '.'
+            }
         }
-        return realPath;
+    }
+
+    private String escapeRoot(String path) {
+        if ("/".equals(path)) {
+            return "";
+        }
+        return path;
     }
 }

@@ -80,12 +80,13 @@ public abstract class VirtualFile <T> extends AbstractFile {
     }
 
     public List<T> listFiles() {
-        if ("/".equals(absPath)) {
+        if ("/".equals(absPath) || "~".equals(absPath)) {
             List<T> files = new ArrayList<>(4);
-            files.add(createFile("/" + VirtualFileSystemView.PREFIX_FS, null, pftpdService));
-            files.add(createFile("/" + VirtualFileSystemView.PREFIX_ROOT, null, pftpdService));
-            files.add(createFile("/" + VirtualFileSystemView.PREFIX_SAF, null, pftpdService));
-            files.add(createFile("/" + VirtualFileSystemView.PREFIX_ROSAF, null, pftpdService));
+            String path = "/".equals(absPath) ? "/" : "";
+            files.add(createFile(path + VirtualFileSystemView.PREFIX_FS, null, pftpdService));
+            files.add(createFile(path + VirtualFileSystemView.PREFIX_ROOT, null, pftpdService));
+            files.add(createFile(path + VirtualFileSystemView.PREFIX_SAF, null, pftpdService));
+            files.add(createFile(path + VirtualFileSystemView.PREFIX_ROSAF, null, pftpdService));
             return Collections.unmodifiableList(files);
         }
         return listDelegateFiles();
