@@ -192,7 +192,9 @@ public abstract class AbstractFile {
 
         Map<SshFile.Attribute, Object> attributes = new HashMap<>();
         for (SshFile.Attribute attr : SshFile.Attribute.values()) {
-            attributes.put(attr, getAttribute(attr, followLinks));
+            Object value = getAttribute(attr, followLinks);
+            attributes.put(attr, value);
+            logger.trace("  getAttributes(value: {})", value);
         }
 
         return attributes;

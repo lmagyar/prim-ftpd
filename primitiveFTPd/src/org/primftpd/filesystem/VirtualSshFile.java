@@ -42,6 +42,17 @@ public class VirtualSshFile extends VirtualFile<SshFile> implements SshFile {
     }
 
     @Override
+    public String readSymbolicLink() throws IOException {
+        logger.trace("[{}] readSymbolicLink()", name);
+        if (absPath.charAt(0) != '/' && delegate != null) {
+            String target = delegate.getAbsolutePath();
+            logger.trace("  readSymbolicLink(target: {})", target);
+            return target;
+        }
+        return super.readSymbolicLink();
+    }
+
+    @Override
     public boolean move(SshFile target) {
         logger.trace("move()");
         return delegate != null && ((SshFile) delegate).move((SshFile) ((VirtualSshFile) target).delegate);

@@ -32,7 +32,9 @@ class SshUtils {
                 return Boolean.valueOf(sshFile.isFile());
             case IsSymbolicLink:
                 // as there is no proper sym link support in java 7, just return false, see GH issue #68
-                return false;
+                // return false;
+                String absPath = sshFile.getAbsolutePath();
+                return Boolean.valueOf(!followLinks && absPath.length() > 1 && absPath.charAt(0) != '/');
             case Permissions:
                 boolean read = sshFile.isReadable();
                 boolean write = sshFile.isWritable();
