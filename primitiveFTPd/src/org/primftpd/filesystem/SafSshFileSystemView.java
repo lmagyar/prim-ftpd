@@ -41,7 +41,7 @@ public class SafSshFileSystemView extends SafFileSystemView<SafSshFile, SshFile>
 
     @Override
     protected String absolute(String file) {
-        return Utils.absoluteOrHome(file, ROOT_PATH);
+        return Utils.absoluteSsh(file, ROOT_PATH);
     }
 
     @Override

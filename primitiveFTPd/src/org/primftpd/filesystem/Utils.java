@@ -14,30 +14,31 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.SimpleTimeZone;
 
+import org.apache.ftpserver.ftplet.FtpFile;
+
 public class Utils {
 
     protected static Logger logger = LoggerFactory.getLogger(Utils.class);
 
-    static String absolute(String rel, String workingDir) {
-        if (rel.charAt(0) == '/') {
-            return rel;
-        }
-        if ("./".equals(rel) || ".".equals(rel)) {
-            return workingDir;
-        }
-        return workingDir + "/" + rel;
+    static String absoluteFtp(String rel, FtpFile workingDir) {
+        return absolute(rel, workingDir != null ? workingDir.getAbsolutePath() : "/", false);
     }
 
-    static String absoluteOrHome(String path, String homeDir) {
-        if (".".equals(path) || "/.".equals(path)) {
-            return homeDir;
+    static String absoluteSsh(String path, String homeDir) {
+        return absolute(path, homeDir, true);
+    }
+
+    static String absolute(String path, String relativeTo, boolean hasSpecialSshHomeDir) {
+        if (".".equals(path) || "./".equals(path) || hasSpecialSshHomeDir && "/.".equals(path)) {
+            return relativeTo;
         }
-        // if homeDir == / -> stay relative (needed for virtual folders)
-        if (path.charAt(0) != '/' && !"/".equals(homeDir)) {
-            // assume it is relative to home dir, see GH issue #111
-            return homeDir + "/" + path;
+        if (1 <= path.length() && path.charAt(0) == '/') {
+            return path;
         }
-        return path;
+        if (path.startsWith("./")) {
+            path = path.substring(2);
+        }
+        return relativeTo + (!"/".equals(relativeTo) && 0 < path.length() ? "/" : "") + path;
     }
 
     static List<String> normalizePath(String path) {

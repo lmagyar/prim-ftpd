@@ -25,7 +25,7 @@ public class FsSshFileSystemView extends FsFileSystemView<FsSshFile, SshFile> im
 
 	@Override
 	protected String absolute(String file) {
-		return Utils.absoluteOrHome(file, homeDir.getAbsolutePath());
+		return Utils.absoluteSsh(file, homeDir.getAbsolutePath());
 	}
 
 	@Override

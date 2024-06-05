@@ -47,16 +47,13 @@ public class SafFtpFileSystemView extends SafFileSystemView<SafFtpFile, FtpFile>
     @Override
     protected String absolute(String file) {
         logger.trace("  finding abs path for '{}' with wd '{}'", file, (workingDir != null ? workingDir.getAbsolutePath() : "null"));
-        if (workingDir == null) {
-            return file; // during c-tor
-        }
-        return Utils.absolute(file, workingDir.getAbsolutePath());
+        return Utils.absoluteFtp(file, workingDir);
     }
 
     public SafFtpFile getHomeDirectory() {
-        logger.trace("getHomeDirectory() -> {}", SafFtpFileSystemView.ROOT_PATH);
+        logger.trace("getHomeDirectory() -> {}", ROOT_PATH);
 
-        return getFile(SafFtpFileSystemView.ROOT_PATH);
+        return getFile(ROOT_PATH);
     }
 
     public SafFtpFile getWorkingDirectory() {

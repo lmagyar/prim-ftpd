@@ -11,14 +11,14 @@ import org.primftpd.services.PftpdService;
 public class FsFtpFileSystemView extends FsFileSystemView<FsFtpFile, FtpFile> implements FileSystemView {
 
 	private final User user;
-	private final File homeDir;
+	private final FsFtpFile homeDir;
 	private FsFtpFile workingDir;
 
 	public FsFtpFileSystemView(PftpdService pftpdService, File homeDir, User user) {
 		super(pftpdService);
-		this.homeDir = homeDir;
-		workingDir = getHomeDirectory();
 		this.user = user;
+		this.homeDir = getFile(homeDir.getAbsolutePath());
+		this.workingDir = getHomeDirectory();
 	}
 
 	@Override
@@ -29,13 +29,13 @@ public class FsFtpFileSystemView extends FsFileSystemView<FsFtpFile, FtpFile> im
 	@Override
 	protected String absolute(String file) {
 		logger.trace("  finding abs path for '{}' with wd '{}'", file, (workingDir != null ? workingDir.getAbsolutePath() : "null"));
-		return Utils.absolute(file, workingDir.getAbsolutePath());
+		return Utils.absoluteFtp(file, workingDir);
 	}
 
 	public FsFtpFile getHomeDirectory() {
 		logger.trace("getHomeDirectory() -> {}", (homeDir != null ? homeDir.getAbsolutePath() : "null"));
 
-		return createFile(homeDir, pftpdService);
+		return homeDir;
 	}
 
 	public FsFtpFile getWorkingDirectory() {

@@ -15,6 +15,7 @@ public class VirtualFtpFileSystemView extends VirtualFileSystemView<
         RoSafFtpFile> implements FileSystemView {
 
     private final User user;
+	private final FtpFile homeDir;
     private FtpFile workingDir;
 
     public VirtualFtpFileSystemView(
@@ -23,10 +24,12 @@ public class VirtualFtpFileSystemView extends VirtualFileSystemView<
             SafFtpFileSystemView safFileSystemView,
             RoSafFtpFileSystemView roSafFileSystemView,
             PftpdService pftpdService,
+            File homeDir,
             User user) {
         super(fsFileSystemView, rootFileSystemView, safFileSystemView, roSafFileSystemView, pftpdService);
         this.user = user;
-        workingDir = getHomeDirectory();
+		this.homeDir = getFile("/" + PREFIX_FS + homeDir.getAbsolutePath());
+		this.workingDir = getHomeDirectory();
     }
 
     @Override
@@ -42,13 +45,13 @@ public class VirtualFtpFileSystemView extends VirtualFileSystemView<
     @Override
     protected String absolute(String file) {
         logger.trace("  finding abs path for '{}' with wd '{}'", file, (workingDir != null ? workingDir.getAbsolutePath() : "null"));
-        return Utils.absolute(file, workingDir.getAbsolutePath());
+        return Utils.absoluteFtp(file, workingDir);
     }
 
     @Override
     public FtpFile getHomeDirectory() {
-        logger.trace("getHomeDirectory()");
-        return createFile("/", null, pftpdService);
+        logger.trace("getHomeDirectory() -> {}", (homeDir != null ? homeDir.getAbsolutePath() : "null"));
+        return homeDir;
     }
 
     @Override

@@ -37,10 +37,7 @@ public class RoSafFtpFileSystemView extends RoSafFileSystemView<RoSafFtpFile, Ft
     @Override
     protected String absolute(String file) {
         logger.trace("  finding abs path for '{}' with wd '{}'", file, (workingDir != null ? workingDir.getAbsolutePath() : "null"));
-        if (workingDir == null) {
-            return file; // during c-tor
-        }
-        return Utils.absolute(file, workingDir.getAbsolutePath());
+        return Utils.absoluteFtp(file, workingDir);
     }
 
     public RoSafFtpFile getHomeDirectory() {

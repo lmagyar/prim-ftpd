@@ -20,7 +20,8 @@ public class RootFtpFileSystemView extends RootFileSystemView<RootFtpFile, FtpFi
     public RootFtpFileSystemView(Shell.Interactive shell, PftpdService pftpdService, File homeDir, User user) {
         super(shell, pftpdService);
         this.user = user;
-        this.workingDir = this.homeDir = getFile(homeDir.getAbsolutePath());
+		this.homeDir = getFile(homeDir.getAbsolutePath());
+		this.workingDir = getHomeDirectory();
     }
 
     @Override
@@ -31,10 +32,7 @@ public class RootFtpFileSystemView extends RootFileSystemView<RootFtpFile, FtpFi
     @Override
     protected String absolute(String file) {
         logger.trace("  finding abs path for '{}' with wd '{}'", file, (workingDir != null ? workingDir.getAbsolutePath() : "null"));
-        if (workingDir == null) {
-            return file; // during c-tor
-        }
-        return Utils.absolute(file, workingDir.getAbsolutePath());
+        return Utils.absoluteFtp(file, workingDir);
     }
 
     public RootFtpFile getHomeDirectory() {

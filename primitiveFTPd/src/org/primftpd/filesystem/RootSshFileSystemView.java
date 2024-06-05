@@ -28,7 +28,7 @@ public class RootSshFileSystemView extends RootFileSystemView<RootSshFile, SshFi
 
     @Override
     protected String absolute(String file) {
-        return Utils.absoluteOrHome(file, homeDir.getAbsolutePath());
+        return Utils.absoluteSsh(file, homeDir.getAbsolutePath());
     }
 
     @Override
