@@ -55,12 +55,6 @@ public class VirtualSshFile extends VirtualFile<SshFile> implements SshFile {
     }
 
     @Override
-    public boolean isExecutable() {
-        logger.trace("[{}] isExecutable()", name);
-        return delegate != null ? delegate.isExecutable() : true;
-    }
-
-    @Override
     public boolean create() throws IOException {
         logger.trace("[{}] create()", name);
         // This call and the update of the cached properties is required by SSHFS, because it calls STAT and later FSTAT on created new files,
@@ -74,6 +68,12 @@ public class VirtualSshFile extends VirtualFile<SshFile> implements SshFile {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public boolean isExecutable() {
+        logger.trace("[{}] isExecutable()", name);
+        return delegate != null ? delegate.isExecutable() : true;
     }
 
     @Override
