@@ -92,7 +92,6 @@ public abstract class RoSafFileSystemView<TFile extends RoSafFile<TMina, ? exten
                     if (childCursor.isAfterLast()) {
                         // not found
                         if (i == parts.size() - 1) {
-                            // TODO we are read only -> there is no upload anyway
                             // probably upload -> create object just with name
                             logger.trace("    calling createFile() for not found doc: {}", currentPart);
                             return createFile(Utils.toPath(parts), currentPart, false);

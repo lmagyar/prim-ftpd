@@ -187,17 +187,13 @@ public abstract class RoSafFile<TMina, TFileSystemView extends RoSafFileSystemVi
     }
 
     public boolean isWritable() {
-        // TODO writing with SAF cursor/uri api
-        //boolean result = writable;
-        boolean result = false;
+        boolean result = writable;
         logger.trace("[{}] isWritable() -> {}", name, result);
         return result;
     }
 
     public boolean isRemovable() {
-        // TODO writing with SAF cursor/uri api
-        //boolean result = deletable;
-        boolean result = false;
+        boolean result = deletable;
         logger.trace("[{}] isRemovable() -> {}", name, result);
         return result;
     }
@@ -230,32 +226,30 @@ public abstract class RoSafFile<TMina, TFileSystemView extends RoSafFileSystemVi
 
     public boolean delete() {
         logger.trace("[{}] delete()", name);
-        // TODO writing with SAF cursor/uri api
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//            Uri docUri = DocumentsContract.buildDocumentUriUsingTree(getStartUrl(), documentId);
-//            logger.trace("delete(): docUri: '{}'", docUri);
-//            try {
-//                return DocumentsContract.deleteDocument(getPftpdService().getContext().getContentResolver(), docUri);
-//            } catch (FileNotFoundException e) {
-//                logger.error("could not delete " + name, e);
-//            }
-//        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Uri docUri = DocumentsContract.buildDocumentUriUsingTree(getStartUrl(), documentId);
+            logger.trace("delete(): docUri: '{}'", docUri);
+            try {
+                return DocumentsContract.deleteDocument(getPftpdService().getContext().getContentResolver(), docUri);
+            } catch (FileNotFoundException e) {
+                logger.error("could not delete " + name, e);
+            }
+        }
         return false;
     }
 
     public boolean move(AbstractFile destination) {
         logger.trace("[{}] move({})", name, destination.getAbsolutePath());
-        // TODO writing with SAF cursor/uri api
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//            Uri docUri = DocumentsContract.buildDocumentUriUsingTree(getStartUrl(), documentId);
-//            logger.trace("move(): docUri: '{}'", docUri);
-//            try {
-//                Uri newNameUri = DocumentsContract.renameDocument(getPftpdService().getContext().getContentResolver(), docUri, destination.getName());
-//                return newNameUri != null;
-//            } catch (FileNotFoundException e) {
-//                logger.error("could not rename " + name, e);
-//            }
-//        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Uri docUri = DocumentsContract.buildDocumentUriUsingTree(getStartUrl(), documentId);
+            logger.trace("move(): docUri: '{}'", docUri);
+            try {
+                Uri newNameUri = DocumentsContract.renameDocument(getPftpdService().getContext().getContentResolver(), docUri, destination.getName());
+                return newNameUri != null;
+            } catch (FileNotFoundException e) {
+                logger.error("could not rename " + name, e);
+            }
+        }
         return false;
     }
 
