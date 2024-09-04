@@ -13,6 +13,9 @@ FTP and SFTP server app for Android with external SD-card access.
 > [!IMPORTANT]
 > ***To install this forked version, download the latest release from [Releases](https://github.com/lmagyar/prim-ftpd/releases).***
 
+> [!NOTE]
+> ***You can install both the original and the forked version next to each other. The forked version is not a drop-in replacement, but another app.***
+
 ## Some features:
 * Can optionally be started on system boot
 * Shows statusbar notification when server is running
