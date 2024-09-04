@@ -10,16 +10,8 @@ FTP and SFTP server app for Android with external SD-card access.
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Q8TU8ZQX3WV8J)
 
-How can you use this server on your device to access your files (see discussion regarding permission and restriction below in terms of Google and Play)?
-* Install from F-Droid
-* Download from GitHub releases
-* Use SAF
-* Use QuickShare
-
-| [<img alt="Get it on F-Droid" height="60" src="https://f-droid.org/badge/get-it-on.png" />](https://f-droid.org/app/org.primftpd) | [<img alt="Get it on Google Play" height="60" src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" />](https://play.google.com/store/apps/details?id=org.primftpd) | [<img alt="Get it on Amazon" height="45" style="margin-left: 8px;" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonMobileApps/amazon-apps-store-us-black.png" />](http://www.amazon.com/wolpi-primitive-FTPd/dp/B00KERCPNY/ref=sr_1_1) |
-| --- | --- | --- |
-
-You may download latest development snapshot from [GitHub packages](https://github.com/wolpi/prim-ftpd/packages/).
+> [!IMPORTANT]
+> ***To install this forked version, download the latest release from [Releases](https://github.com/lmagyar/prim-ftpd/releases).***
 
 ## Some features:
 * Can optionally be started on system boot
