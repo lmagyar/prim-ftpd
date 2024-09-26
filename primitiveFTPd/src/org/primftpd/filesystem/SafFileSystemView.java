@@ -32,11 +32,7 @@ public abstract class SafFileSystemView<T extends SafFile<X>, X> {
         this.startUrl = startUrl;
         this.contentResolver = contentResolver;
         this.pftpdService = pftpdService;
-        timeResolution = StorageManagerUtil.getFilesystemTimeResolutionForTreeUri(startUrl);
-    }
-
-    protected int getTimeResolution() {
-        return timeResolution;
+        this.timeResolution = StorageManagerUtil.getFilesystemTimeResolutionForTreeUri(startUrl);
     }
 
     protected abstract T createFile(
@@ -44,15 +40,13 @@ public abstract class SafFileSystemView<T extends SafFile<X>, X> {
             DocumentFile parentDocumentFile,
             DocumentFile documentFile,
             String absPath,
-            PftpdService pftpdService,
-            SafFileSystemView fileSystemView);
+            PftpdService pftpdService);
     protected abstract T createFile(
             ContentResolver contentResolver,
             DocumentFile parentDocumentFile,
             String name,
             String absPath,
-            PftpdService pftpdService,
-            SafFileSystemView fileSystemView);
+            PftpdService pftpdService);
 
     protected abstract String absolute(String file);
 
@@ -103,7 +97,7 @@ public abstract class SafFileSystemView<T extends SafFile<X>, X> {
                                     DocumentFile parentDocFile = DocumentFile.fromTreeUri(context, parentUri);
                                     DocumentFile docFile = DocumentFile.fromTreeUri(context, docUri);
                                     String absPath = Utils.toPath(parts);
-                                    return createFile(contentResolver, parentDocFile, docFile, absPath, pftpdService, this);
+                                    return createFile(contentResolver, parentDocFile, docFile, absPath, pftpdService);
                                 } else {
                                     parentId = docId;
                                     break;
@@ -118,7 +112,7 @@ public abstract class SafFileSystemView<T extends SafFile<X>, X> {
                                 logger.trace("    calling createFile() for doc: {}, parentId: {}, parentUri: {}", new Object[]{currentPart, parentId, parentUri});
                                 DocumentFile parentDocFile = DocumentFile.fromTreeUri(context, parentUri);
                                 String absPath = Utils.toPath(parts);
-                                return createFile(contentResolver, parentDocFile, currentPart, absPath, pftpdService, this);
+                                return createFile(contentResolver, parentDocFile, currentPart, absPath, pftpdService);
                             } else {
                                 // invalid path
                                 String absPath = Utils.toPath(parts.subList(0, i+1));
@@ -134,7 +128,7 @@ public abstract class SafFileSystemView<T extends SafFile<X>, X> {
             }
             DocumentFile rootDocFile = DocumentFile.fromTreeUri(context, startUrl);
             logger.trace("    calling createFile() for root doc: {}", startUrl);
-            return createFile(contentResolver, rootDocFile, rootDocFile, ROOT_PATH, pftpdService, this);
+            return createFile(contentResolver, rootDocFile, rootDocFile, ROOT_PATH, pftpdService);
         } catch (Exception e) {
             final String msg = "[(s)ftpd] Error getting data from SAF: " + e.toString();
             logger.error(msg);
