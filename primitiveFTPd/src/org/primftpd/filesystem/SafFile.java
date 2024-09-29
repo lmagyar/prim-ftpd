@@ -244,7 +244,7 @@ public abstract class SafFile<T> extends AbstractFile {
         }
 
         if (documentFile != null) {
-            lastModified = documentFile.lastModified();
+            lastModified = fileSystemView.getCorrectedTime(documentFile.lastModified());
             size = 0;
             readable = documentFile.canRead();
             exists = true;
