@@ -27,11 +27,9 @@ import java.util.TimeZone;
 
 import eu.chainfire.libsuperuser.Shell;
 
-public abstract class RootFile<T> extends AbstractFile {
+public abstract class RootFile<TMina, TFileSystemView extends RootFileSystemView> extends AbstractFile<TFileSystemView> {
 
     private static final int BUF_SIZE_DD_ERR_STREAM = 4096;
-
-    private final Shell.Interactive shell;
 
     protected final LsOutputBean bean;
 
@@ -39,25 +37,57 @@ public abstract class RootFile<T> extends AbstractFile {
     private File tmpDir;
     private boolean moveFileOnClose;
 
-    public RootFile(Shell.Interactive shell, LsOutputBean bean, String absPath, PftpdService pftpdService) {
+    public RootFile(TFileSystemView fileSystemView, String absPath, LsOutputBean bean) {
         super(
+                fileSystemView,
                 absPath,
-                bean.getName(),
-                bean.getTimestamp(),
-                bean.getSize(),
-                true,
-                bean.isExists(),
-                bean.isDir(),
-                pftpdService);
-        this.shell = shell;
+                bean.getName());
         this.bean = bean;
     }
 
-    protected abstract T createFile(Shell.Interactive shell, LsOutputBean bean, String absPath, PftpdService pftpdService);
+    protected final Shell.Interactive getShell() {
+        return getFileSystemView().getShell();
+    }
+
+    protected abstract TMina createFile(String absPath, LsOutputBean bean);
 
     @Override
     public ClientActionEvent.Storage getClientActionStorage() {
         return ClientActionEvent.Storage.ROOT;
+    }
+
+    public boolean isDirectory() {
+        boolean result = bean.isDir();
+        logger.trace("[{}] isDirectory() -> {}", name, result);
+        return result;
+    }
+
+    public boolean doesExist() {
+        boolean result = bean.isExists();
+        logger.trace("[{}] doesExist() -> {}", name, result);
+        return result;
+    }
+
+    public boolean isReadable() {
+        boolean result = true;
+        logger.trace("[{}] isReadable() -> {}", name, result);
+        return result;
+    }
+
+    public long getLastModified() {
+        logger.trace("[{}] RootFile getLastModified()", name);
+        long result = bean.getTimestamp();
+        logger.trace("  returning date '{}', original ls-output line: {}",
+                DEBUG_DATE_FORMAT.format(result),
+                bean.getOriginalLine());
+        logger.trace("[{}] getLastModified() -> {}", name, result);
+        return result;
+    }
+
+    public long getSize() {
+        long result = bean.getSize();
+        logger.trace("[{}] getSize() -> {}", name, result);
+        return result;
     }
 
     public boolean isFile() {
@@ -87,15 +117,6 @@ public abstract class RootFile<T> extends AbstractFile {
         DEBUG_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
-    @Override
-    public long getLastModified() {
-        logger.trace("[{}] RootFile getLastModified()", name);
-        logger.trace("  returning date '{}', original ls-output line: {}",
-                DEBUG_DATE_FORMAT.format(bean.getTimestamp()),
-                bean.getOriginalLine());
-        return super.getLastModified();
-    }
-
     public boolean mkdir() {
         logger.trace("[{}] mkdir()", name);
         postClientAction(ClientActionEvent.ClientAction.CREATE_DIR);
@@ -108,24 +129,27 @@ public abstract class RootFile<T> extends AbstractFile {
         return runCommand("rm -rf " + escapePath(absPath));
     }
 
-    public boolean move(RootFile<T> destination) {
+    public boolean move(AbstractFile destination) {
         logger.trace("[{}] move({})", name, destination.getAbsolutePath());
         postClientAction(ClientActionEvent.ClientAction.RENAME);
         boolean success = runCommand("mv " + escapePath(absPath) + " " + escapePath(destination.getAbsolutePath()));
         if (success) {
-            Utils.mediaScanFile(pftpdService.getContext(), getAbsolutePath());
+            // removes old file location
+            Utils.mediaScanFile(getPftpdService().getContext(), getAbsolutePath());
+            // adds new file location
+            Utils.mediaScanFile(getPftpdService().getContext(), destination.getAbsolutePath());
         }
         return success;
     }
 
-    public List<T> listFiles() {
+    public List<TMina> listFiles() {
         logger.trace("[{}] listFiles()", name);
         postClientAction(ClientActionEvent.ClientAction.LIST_DIR);
 
-        List<T> result = new ArrayList<>();
+        List<TMina> result = new ArrayList<>();
         final LsOutputParser parser = new LsOutputParser();
         final List<LsOutputBean> beans = new ArrayList<>();
-        shell.addCommand("ls -la " + escapePath(absPath), 0, new Shell.OnCommandLineListener() {
+        getShell().addCommand("ls -la " + escapePath(absPath), 0, new Shell.OnCommandLineListener() {
             @Override
             public void onSTDOUT(String s) {
                 LsOutputBean bean = parser.parseLine(s);
@@ -141,11 +165,11 @@ public abstract class RootFile<T> extends AbstractFile {
             public void onCommandResult(int i, int i1) {
             }
         });
-        shell.waitForIdle();
+        getShell().waitForIdle();
 
         for (LsOutputBean bean : beans) {
             String path = absPath + "/" + bean.getName();
-            result.add(createFile(shell, bean, path, pftpdService));
+            result.add(createFile(path, bean));
         }
 
         return result;
@@ -161,7 +185,7 @@ public abstract class RootFile<T> extends AbstractFile {
         }
 
         OutputStream os;
-        if (pftpdService.getPrefsBean().isRootCopyFiles()) {
+        if (getPftpdService().getPrefsBean().isRootCopyFiles()) {
             os = createOutputStreamCopy(offset);
         } else {
             os = createOutputStreamDd(offset);
@@ -170,7 +194,7 @@ public abstract class RootFile<T> extends AbstractFile {
             @Override
             public void close() throws IOException {
                 super.close();
-                Utils.mediaScanFile(pftpdService.getContext(), getAbsolutePath());
+                Utils.mediaScanFile(getPftpdService().getContext(), getAbsolutePath());
             }
         };
     }
@@ -179,7 +203,7 @@ public abstract class RootFile<T> extends AbstractFile {
         logger.trace("[{}] createInputStream(offset: {})", name, offset);
         postClientAction(ClientActionEvent.ClientAction.DOWNLOAD);
 
-        if (pftpdService.getPrefsBean().isRootCopyFiles()) {
+        if (getPftpdService().getPrefsBean().isRootCopyFiles()) {
             return createInputStreamCopy(offset);
         } else {
             return createInputStreamDd(offset);
@@ -189,7 +213,7 @@ public abstract class RootFile<T> extends AbstractFile {
     @Override
     public void handleClose() throws IOException {
         logger.trace("[{}] handleClose()", name);
-        if (pftpdService.getPrefsBean().isRootCopyFiles()) {
+        if (getPftpdService().getPrefsBean().isRootCopyFiles()) {
             handleCloseCopy();
         } else {
             handleCloseDd();
@@ -228,7 +252,7 @@ public abstract class RootFile<T> extends AbstractFile {
         try {
             // workaround for weird errors
             long sleep = 250;
-            if (size < 100) {
+            if (getSize() < 100) {
                 sleep = 1000;
             }
             Thread.sleep(sleep);
@@ -245,7 +269,7 @@ public abstract class RootFile<T> extends AbstractFile {
         try {
             // workaround for weird errors
             long sleep = 250;
-            if (size < 100) {
+            if (getSize() < 100) {
                 sleep = 1000;
             }
             Thread.sleep(sleep);
@@ -262,7 +286,7 @@ public abstract class RootFile<T> extends AbstractFile {
     }
 
     private OutputStream createOutputStreamCopy(long offset) throws IOException {
-        tmpDir = Defaults.buildTmpDir(this.pftpdService.getContext(), TmpDirType.ROOT_COPY);
+        tmpDir = Defaults.buildTmpDir(getPftpdService().getContext(), TmpDirType.ROOT_COPY);
         moveFileOnClose = true;
         String name = getName();
         if (name.contains("/")) {
@@ -282,7 +306,7 @@ public abstract class RootFile<T> extends AbstractFile {
 
     public InputStream createInputStreamCopy(long offset) throws IOException {
         if (offset == 0) {
-            tmpDir = Defaults.buildTmpDir(this.pftpdService.getContext(), TmpDirType.ROOT_COPY);
+            tmpDir = Defaults.buildTmpDir(getPftpdService().getContext(), TmpDirType.ROOT_COPY);
             runCommand("cp" + " " + escapePath(absPath) + " " + escapePath(tmpDir.getAbsolutePath()));
         }
         File tmpFile = tmpDir.listFiles()[0];
@@ -342,7 +366,7 @@ public abstract class RootFile<T> extends AbstractFile {
     protected boolean runCommand(String cmd) {
         logger.trace("running cmd: '{}'", cmd);
         final Boolean[] wrapper = new Boolean[1];
-        shell.addCommand(cmd, 0, new Shell.OnCommandLineListener() {
+        getShell().addCommand(cmd, 0, new Shell.OnCommandLineListener() {
             @Override
             public void onSTDOUT(String s) {
                 // usually commands don't print
@@ -357,13 +381,13 @@ public abstract class RootFile<T> extends AbstractFile {
                 wrapper[0] = i == 0;
             }
         });
-        shell.waitForIdle();
+        getShell().waitForIdle();
         return wrapper[0];
     }
 
     protected String readCommandOutput(String cmd) {
         final StringBuilder sb = new StringBuilder();
-        shell.addCommand(cmd, 0, new Shell.OnCommandLineListener() {
+        getShell().addCommand(cmd, 0, new Shell.OnCommandLineListener() {
             @Override
             public void onCommandResult(int i, int i1) {
             }
@@ -378,7 +402,7 @@ public abstract class RootFile<T> extends AbstractFile {
                 logger.error("stderr: {}", s);
             }
         });
-        shell.waitForIdle();
+        getShell().waitForIdle();
         String result = sb.toString();
         logger.trace("read output of cmd '{}': '{}'", cmd, result);
         return result;
