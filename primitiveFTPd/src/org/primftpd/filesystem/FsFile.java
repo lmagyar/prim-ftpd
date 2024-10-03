@@ -163,6 +163,9 @@ public abstract class FsFile<TMina, TFileSystemView extends FsFileSystemView> ex
 	public boolean mkdir() {
 		logger.trace("[{}] mkdir()", name);
 		postClientAction(ClientActionEvent.ClientAction.CREATE_DIR);
+		// may be necessary to create dirs
+		// some clients do not issue mkdir commands like filezilla
+		// see isWritable()
 		return file.mkdirs();
 	}
 

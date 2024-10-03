@@ -120,6 +120,8 @@ public abstract class RootFile<TMina, TFileSystemView extends RootFileSystemView
     public boolean mkdir() {
         logger.trace("[{}] mkdir()", name);
         postClientAction(ClientActionEvent.ClientAction.CREATE_DIR);
+        // TODO test if parent exists and run "mkdir -p" on parent if needed, see FS or SAF
+        //      do not run mkdir -p on this dir, it hides if dir already exists
         return runCommand("mkdir " + escapePath(absPath));
     }
 
@@ -180,6 +182,7 @@ public abstract class RootFile<TMina, TFileSystemView extends RootFileSystemView
         postClientAction(ClientActionEvent.ClientAction.UPLOAD);
 
         if (!bean.isExists()) {
+            // TODO test if parent exists and run "mkdir -p" on parent if needed, see FS or SAF
             // if file does not exist, explicitly create it as root, see GH issue #117
             runCommand("touch" + " " + escapePath(absPath));
         }

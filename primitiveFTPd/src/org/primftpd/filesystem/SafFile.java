@@ -248,7 +248,7 @@ public abstract class SafFile<TMina, TFileSystemView extends SafFileSystemView> 
             // may be necessary to create dirs
             // some clients do not issue mkdir commands like filezilla
             if (!mkParentNonexistentDirs()) {
-                throw new IOException(String.format("Failed to create parent folders '%s'", absPath));
+                throw new IOException(String.format("Failed to create parent folder(s) '%s'", absPath));
             }
             if (!createNewFile()) {
                 throw new IOException(String.format("Failed to create file '%s'", absPath));
