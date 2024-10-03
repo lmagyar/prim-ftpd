@@ -201,8 +201,6 @@ def checkDownloadedFile(errors, filename, errorTag):
     log("checking downloaded file: " + filename)
     tmpPath = TMP_DIR + "/" + filename
 
-    return
-
     output = runCommand("ls -lh " + TMP_DIR)
     print(output)
 
