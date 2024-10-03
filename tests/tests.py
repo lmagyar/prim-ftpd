@@ -18,7 +18,7 @@ STORAGE_TYPE_VIRTUAL = "virtual"
 
 VALID_STORAGE_TYPES = [STORAGE_TYPE_FS, STORAGE_TYPE_ROOT, STORAGE_TYPE_SAF, STORAGE_TYPE_SAFRO, STORAGE_TYPE_VIRTUAL]
 
-HOSTNAME = "localhost"
+HOSTNAME = "win11"
 PORT_SFTP = "1234"
 PORT_FTP = "12345"
 PORT_FTP_PASSIVE = "5678"
@@ -120,9 +120,10 @@ def runCommand(cmd, check = True):
     return str(proc.stdout.decode("utf-8"))
 
 def setupAdbForwards():
-    runCommand(CMD_ADB_PORT_SFTP)
-    runCommand(CMD_ADB_PORT_FTP)
-    runCommand(CMD_ADB_PORT_FTP_PASSIVE)
+    pass
+    # runCommand(CMD_ADB_PORT_SFTP)
+    # runCommand(CMD_ADB_PORT_FTP)
+    # runCommand(CMD_ADB_PORT_FTP_PASSIVE)
 
 def setupTmpDir():
     if os.path.exists(TMP_DIR):
