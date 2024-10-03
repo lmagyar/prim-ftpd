@@ -22,8 +22,7 @@ public abstract class VirtualFile<TMina, TFileSystemView extends VirtualFileSyst
             boolean exists) {
         super(
             fileSystemView,
-            // super.absPath will contain only the prefix if there is a delegate
-            delegate != null && delegate.absPath.length() > 1 ? absPath.substring(0, absPath.indexOf('/', 1)) : absPath,
+            absPath,
             delegate != null ? delegate.getName() : absPath.length() > 1 && absPath.charAt(0) == '/' ? absPath.substring(1) : absPath);
         this.delegate = delegate;
         this.exists = exists;
@@ -55,19 +54,6 @@ public abstract class VirtualFile<TMina, TFileSystemView extends VirtualFileSyst
 
     public ClientActionEvent.Storage getClientActionStorage() {
         return delegate.getClientActionStorage();
-    }
-
-    @Override
-    public String getAbsolutePath() {
-        // super.absPath contains only the prefix if there is a delegate
-        String absPath = delegate != null && delegate.absPath.length() > 1 ? this.absPath + delegate.absPath : this.absPath;
-        logger.trace("[{}] getAbsolutePath() -> '{}'", name, absPath);
-        return absPath;
-    }
-
-    @Override
-    public String getName() {
-        return delegate != null ? delegate.getName() : super.getName();
     }
 
     public boolean isDirectory() {
