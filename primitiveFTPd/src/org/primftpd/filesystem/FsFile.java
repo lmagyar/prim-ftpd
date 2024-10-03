@@ -177,9 +177,9 @@ public abstract class FsFile<TMina, TFileSystemView extends FsFileSystemView> ex
 		postClientAction(ClientActionEvent.ClientAction.RENAME);
 		boolean success = file.renameTo(new File(destination.getAbsolutePath()));
 		if (success) {
-			// removes old file location
+			// remove old file location
 			Utils.mediaScanFile(getPftpdService().getContext(), getAbsolutePath());
-			// adds new file location
+			// add new file location
 			Utils.mediaScanFile(getPftpdService().getContext(), destination.getAbsolutePath());
 		}
 		return success;
@@ -222,7 +222,9 @@ public abstract class FsFile<TMina, TFileSystemView extends FsFileSystemView> ex
 		// see isWritable()
 		File parent = file.getParentFile();
 		if (!parent.exists()) {
-			parent.mkdirs();
+			if (!parent.mkdirs()) {
+				throw new IOException(String.format("Failed to create parent folder(s) '%s'", absPath));
+			}
 		}
 
 		// now create out stream

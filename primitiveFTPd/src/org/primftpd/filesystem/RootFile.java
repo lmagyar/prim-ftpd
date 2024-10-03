@@ -134,9 +134,9 @@ public abstract class RootFile<TMina, TFileSystemView extends RootFileSystemView
         postClientAction(ClientActionEvent.ClientAction.RENAME);
         boolean success = runCommand("mv " + escapePath(absPath) + " " + escapePath(destination.getAbsolutePath()));
         if (success) {
-            // removes old file location
+            // remove old file location
             Utils.mediaScanFile(getPftpdService().getContext(), getAbsolutePath());
-            // adds new file location
+            // add new file location
             Utils.mediaScanFile(getPftpdService().getContext(), destination.getAbsolutePath());
         }
         return success;

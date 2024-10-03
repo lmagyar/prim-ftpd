@@ -50,7 +50,7 @@ public abstract class AbstractFile<TFileSystemView extends AbstractFileSystemVie
     }
 
     public void postClientAction(ClientActionEvent.ClientAction clientAction, String error) {
-        fileSystemView.getPftpdService().postClientAction(
+        getPftpdService().postClientAction(
                 getClientActionStorage(),
                 clientAction,
                 getClientIp(),
