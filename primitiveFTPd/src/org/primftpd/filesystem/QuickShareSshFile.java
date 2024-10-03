@@ -60,13 +60,6 @@ public class QuickShareSshFile extends QuickShareFile<SshFile, QuickShareSshFile
     }
 
     @Override
-    public boolean isExecutable() {
-        boolean result = false;
-        logger.trace("[{}] isExecutable() -> {}", name, result);
-        return result;
-    }
-
-    @Override
     public List<SshFile> listSshFiles() {
         return listFiles();
     }

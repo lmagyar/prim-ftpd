@@ -194,10 +194,11 @@ public abstract class SafFile<TMina, TFileSystemView extends SafFileSystemView> 
         logger.trace("[{}] delete()", name);
         if (isWritable() && documentFile != null) {
             postClientAction(ClientActionEvent.ClientAction.DELETE);
-            if (documentFile.delete()) {
+            boolean success = documentFile.delete();
+            if (success) {
                 documentFile = null;
-                return true;
             }
+            return success;
         }
         return false;
     }

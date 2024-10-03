@@ -36,7 +36,7 @@ public abstract class RoSafFileSystemView<TFile extends RoSafFile<TMina, ? exten
             String docId,
             boolean exists);
 
-    public Uri getStartUrl() {
+    final Uri getStartUrl() {
         return startUrl;
     }
 
@@ -101,6 +101,7 @@ public abstract class RoSafFileSystemView<TFile extends RoSafFile<TMina, ? exten
                             String absPath = Utils.toPath(parts.subList(0, i+1));
                             logger.error("path does not exist: {}", absPath);
                             // fall through to returning the root document
+                            // TODO follow SAF implementation
                             break;
                         }
                     }

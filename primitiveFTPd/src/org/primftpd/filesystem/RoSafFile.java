@@ -50,7 +50,7 @@ public abstract class RoSafFile<TMina, TFileSystemView extends RoSafFileSystemVi
 
         try {
             Cursor cursor = getPftpdService().getContext().getContentResolver().query(
-                    getFileSystemView().getStartUrl(),
+                    getStartUrl(),
                     SAF_QUERY_COLUMNS,
                     null,
                     null,
@@ -88,7 +88,7 @@ public abstract class RoSafFile<TMina, TFileSystemView extends RoSafFileSystemVi
         if (exists) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 Uri uri = DocumentsContract.buildDocumentUriUsingTree(
-                        getFileSystemView().getStartUrl(),
+                        getStartUrl(),
                         docId);
 
                 Cursor cursor = getPftpdService().getContext().getContentResolver().query(
@@ -142,6 +142,10 @@ public abstract class RoSafFile<TMina, TFileSystemView extends RoSafFileSystemVi
 
     private boolean flagPresent(int flags, int flag) {
         return ((flags & flag) == flag);
+    }
+
+    protected final Uri getStartUrl() {
+        return getFileSystemView().getStartUrl();
     }
 
     protected abstract TMina createFile(String absPath, Cursor cursor);
@@ -208,9 +212,9 @@ public abstract class RoSafFile<TMina, TFileSystemView extends RoSafFileSystemVi
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Uri parentUri;
             if (documentId != null) {
-                parentUri = DocumentsContract.buildDocumentUriUsingTree(getFileSystemView().getStartUrl(), documentId);
+                parentUri = DocumentsContract.buildDocumentUriUsingTree(getStartUrl(), documentId);
             } else {
-                parentUri = getFileSystemView().getStartUrl();
+                parentUri = getStartUrl();
             }
             logger.trace("mkdir(): parent uri: '{}'", parentUri);
             try {
@@ -228,10 +232,10 @@ public abstract class RoSafFile<TMina, TFileSystemView extends RoSafFileSystemVi
         logger.trace("[{}] delete()", name);
         // TODO writing with SAF cursor/uri api
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//            Uri docUri = DocumentsContract.buildDocumentUriUsingTree(getFileSystemView().getStartUrl(), documentId);
+//            Uri docUri = DocumentsContract.buildDocumentUriUsingTree(getStartUrl(), documentId);
 //            logger.trace("delete(): docUri: '{}'", docUri);
 //            try {
-//                return DocumentsContract.deleteDocument(pftpdService.getContext().getContentResolver(), docUri);
+//                return DocumentsContract.deleteDocument(getPftpdService().getContext().getContentResolver(), docUri);
 //            } catch (FileNotFoundException e) {
 //                logger.error("could not delete " + name, e);
 //            }
@@ -243,10 +247,10 @@ public abstract class RoSafFile<TMina, TFileSystemView extends RoSafFileSystemVi
         logger.trace("[{}] move({})", name, destination.getAbsolutePath());
         // TODO writing with SAF cursor/uri api
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//            Uri docUri = DocumentsContract.buildDocumentUriUsingTree(getFileSystemView().getStartUrl(), documentId);
+//            Uri docUri = DocumentsContract.buildDocumentUriUsingTree(getStartUrl(), documentId);
 //            logger.trace("move(): docUri: '{}'", docUri);
 //            try {
-//                Uri newNameUri = DocumentsContract.renameDocument(pftpdService.getContext().getContentResolver(), docUri, destination.getName());
+//                Uri newNameUri = DocumentsContract.renameDocument(getPftpdService().getContext().getContentResolver(), docUri, destination.getName());
 //                return newNameUri != null;
 //            } catch (FileNotFoundException e) {
 //                logger.error("could not rename " + name, e);
@@ -261,7 +265,7 @@ public abstract class RoSafFile<TMina, TFileSystemView extends RoSafFileSystemVi
 
         List<TMina> result = new ArrayList<>();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Uri startUrl = getFileSystemView().getStartUrl();
+            Uri startUrl = getStartUrl();
             String parentId;
             if (documentId != null) {
                 parentId = documentId;
@@ -312,7 +316,7 @@ public abstract class RoSafFile<TMina, TFileSystemView extends RoSafFileSystemVi
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Uri uri = DocumentsContract.buildDocumentUriUsingTree(
-                    getFileSystemView().getStartUrl(),
+                    getStartUrl(),
                     documentId);
             return new TracingBufferedOutputStream(getPftpdService().getContext().getContentResolver().openOutputStream(uri), logger);
         }
@@ -326,7 +330,7 @@ public abstract class RoSafFile<TMina, TFileSystemView extends RoSafFileSystemVi
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Uri uri = DocumentsContract.buildDocumentUriUsingTree(
-                    getFileSystemView().getStartUrl(),
+                    getStartUrl(),
                     documentId);
             BufferedInputStream bis = new BufferedInputStream(getPftpdService().getContext().getContentResolver().openInputStream(uri));
             bis.skip(offset);

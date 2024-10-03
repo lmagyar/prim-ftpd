@@ -35,6 +35,10 @@ public abstract class QuickShareFile<TMina, TFileSystemView extends QuickShareFi
         this.realFile = realFile;
     }
 
+    protected final File getTmpDir() {
+        return getFileSystemView().getTmpDir();
+    }
+
     abstract protected TMina createFile();
     abstract protected TMina createFile(File realFile);
 
@@ -113,7 +117,7 @@ public abstract class QuickShareFile<TMina, TFileSystemView extends QuickShareFi
         logger.trace("[{}] listFiles()", name);
         postClientAction(ClientActionEvent.ClientAction.LIST_DIR);
 
-        File[] filesArray = getFileSystemView().getTmpDir().listFiles();
+        File[] filesArray = getTmpDir().listFiles();
         if (filesArray != null) {
             List<TMina> files = new ArrayList<>(filesArray.length);
             for (File file : filesArray) {
