@@ -11,6 +11,7 @@ import java.io.File;
 
 public abstract class FsFileSystemView<TFile extends FsFile<TMina, ? extends FsFileSystemView>, TMina> extends AbstractFileSystemView {
 
+	private final MediaScannerClient mediaScannerClient;
 	private final String safVolumePath;
 	private final int safTimeResolution;
 
@@ -20,8 +21,15 @@ public abstract class FsFileSystemView<TFile extends FsFile<TMina, ? extends FsF
 
 	public FsFileSystemView(PftpdService pftpdService, Uri safStartUrl) {
 		super(pftpdService);
+		this.mediaScannerClient = new MediaScannerClient(pftpdService.getContext());
 		this.safTimeResolution = StorageManagerUtil.getFilesystemTimeResolutionForTreeUri(safStartUrl);
 		this.safVolumePath = safTimeResolution != 1 ? StorageManagerUtil.getVolumePathFromTreeUri(safStartUrl, pftpdService.getContext()) : null;
+
+		mediaScannerClient.ensureConnected();
+	}
+
+	public final MediaScannerClient getMediaScannerClient() {
+		return mediaScannerClient;
 	}
 
 	public long getCorrectedTime(String abs, long time) {

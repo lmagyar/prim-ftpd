@@ -45,6 +45,10 @@ public abstract class RootFile<TMina, TFileSystemView extends RootFileSystemView
         this.bean = bean;
     }
 
+    protected final MediaScannerClient getMediaScannerClient() {
+        return getFileSystemView().getMediaScannerClient();
+    }
+
     protected final Shell.Interactive getShell() {
         return getFileSystemView().getShell();
     }
@@ -128,7 +132,11 @@ public abstract class RootFile<TMina, TFileSystemView extends RootFileSystemView
     public boolean delete() {
         logger.trace("[{}] delete()", name);
         postClientAction(ClientActionEvent.ClientAction.DELETE);
-        return runCommand("rm -rf " + escapePath(absPath));
+        boolean success = runCommand("rm -rf " + escapePath(absPath));
+        if (success) {
+            getMediaScannerClient().scanFile(absPath);
+        }
+        return success;
     }
 
     public boolean move(AbstractFile destination) {
@@ -137,9 +145,9 @@ public abstract class RootFile<TMina, TFileSystemView extends RootFileSystemView
         boolean success = runCommand("mv " + escapePath(absPath) + " " + escapePath(destination.getAbsolutePath()));
         if (success) {
             // remove old file location
-            Utils.mediaScanFile(getPftpdService().getContext(), getAbsolutePath());
+            getMediaScannerClient().scanFile(absPath);
             // add new file location
-            Utils.mediaScanFile(getPftpdService().getContext(), destination.getAbsolutePath());
+            getMediaScannerClient().scanFile(destination.getAbsolutePath());
         }
         return success;
     }
@@ -197,7 +205,7 @@ public abstract class RootFile<TMina, TFileSystemView extends RootFileSystemView
             @Override
             public void close() throws IOException {
                 super.close();
-                Utils.mediaScanFile(getPftpdService().getContext(), getAbsolutePath());
+                getMediaScannerClient().scanFile(absPath);
             }
         };
     }

@@ -12,11 +12,19 @@ import eu.chainfire.libsuperuser.Shell;
 
 public abstract class RootFileSystemView<TFile extends RootFile<TMina, ? extends RootFileSystemView>, TMina> extends AbstractFileSystemView {
 
+    private final MediaScannerClient mediaScannerClient;
     protected final Shell.Interactive shell;
 
     public RootFileSystemView(PftpdService pftpdService, Shell.Interactive shell) {
         super(pftpdService);
+        this.mediaScannerClient = new MediaScannerClient(pftpdService.getContext());
         this.shell = shell;
+
+		mediaScannerClient.ensureConnected();
+    }
+
+    public final MediaScannerClient getMediaScannerClient() {
+        return mediaScannerClient;
     }
 
     public final Shell.Interactive getShell() {

@@ -57,6 +57,10 @@ public abstract class FsFile<TMina, TFileSystemView extends FsFileSystemView> ex
 		this.isInjectedDirectory = file.isDirectory() && INJECTIONS_AND_CHILDREN.contains(file.getAbsolutePath());
 	}
 
+	protected final MediaScannerClient getMediaScannerClient() {
+		return getFileSystemView().getMediaScannerClient();
+	}
+
 	protected abstract TMina createFile(File file);
 
 	@Override
@@ -172,7 +176,11 @@ public abstract class FsFile<TMina, TFileSystemView extends FsFileSystemView> ex
 	public boolean delete() {
 		logger.trace("[{}] delete()", name);
 		postClientAction(ClientActionEvent.ClientAction.DELETE);
-		return file.delete();
+		boolean success = file.delete();
+		if (success) {
+			getMediaScannerClient().scanFile(file.getAbsolutePath());
+		}
+		return success;
 	}
 
 	public boolean move(AbstractFile destination) {
@@ -181,9 +189,9 @@ public abstract class FsFile<TMina, TFileSystemView extends FsFileSystemView> ex
 		boolean success = file.renameTo(new File(destination.getAbsolutePath()));
 		if (success) {
 			// remove old file location
-			Utils.mediaScanFile(getPftpdService().getContext(), getAbsolutePath());
+			getMediaScannerClient().scanFile(file.getAbsolutePath());
 			// add new file location
-			Utils.mediaScanFile(getPftpdService().getContext(), destination.getAbsolutePath());
+			getMediaScannerClient().scanFile(destination.getAbsolutePath());
 		}
 		return success;
 	}
@@ -255,7 +263,7 @@ public abstract class FsFile<TMina, TFileSystemView extends FsFileSystemView> ex
 			@Override
 			public void close() throws IOException {
 				super.close();
-				Utils.mediaScanFile(getPftpdService().getContext(), getAbsolutePath());
+				getMediaScannerClient().scanFile(file.getAbsolutePath());
 			}
 		};
 	}
