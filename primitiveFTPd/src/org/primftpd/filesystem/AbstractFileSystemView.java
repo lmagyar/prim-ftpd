@@ -14,7 +14,7 @@ public abstract class AbstractFileSystemView {
         this.pftpdService = pftpdService;
     }
 
-    final PftpdService getPftpdService() {
+    public final PftpdService getPftpdService() {
         return pftpdService;
     }
 }

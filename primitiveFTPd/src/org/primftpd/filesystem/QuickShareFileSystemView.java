@@ -19,7 +19,7 @@ public abstract class QuickShareFileSystemView<TFile extends QuickShareFile<TMin
         this.tmpDir = tmpDir;
     }
 
-    final File getTmpDir() {
+    public final File getTmpDir() {
         return tmpDir;
     }
 

@@ -36,7 +36,7 @@ public abstract class RoSafFileSystemView<TFile extends RoSafFile<TMina, ? exten
             String docId,
             boolean exists);
 
-    final Uri getStartUrl() {
+    public final Uri getStartUrl() {
         return startUrl;
     }
 

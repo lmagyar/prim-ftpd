@@ -105,7 +105,7 @@ public abstract class FsFile<TMina, TFileSystemView extends FsFileSystemView> ex
 	}
 
 	public long getLastModified() {
-		long result = getFileSystemView().getCorrectedTime(absPath, file.lastModified());
+		long result = getFileSystemView().getCorrectedTime(file.getAbsolutePath(), file.lastModified());
 		logger.trace("[{}] getLastModified() -> {}", name, result);
 		return result;
 	}
@@ -156,7 +156,7 @@ public abstract class FsFile<TMina, TFileSystemView extends FsFileSystemView> ex
 
 	public boolean setLastModified(long time) {
 		logger.trace("[{}] setLastModified({})", name, Long.valueOf(time));
-		long correctedTime = getFileSystemView().getCorrectedTime(absPath, time);
+		long correctedTime = getFileSystemView().getCorrectedTime(file.getAbsolutePath(), time);
 		return file.setLastModified(correctedTime);
 	}
 
@@ -226,7 +226,7 @@ public abstract class FsFile<TMina, TFileSystemView extends FsFileSystemView> ex
 		File parent = file.getParentFile();
 		if (!parent.exists()) {
 			if (!parent.mkdirs()) {
-				throw new IOException(String.format("Failed to create parent folder(s) '%s'", absPath));
+				throw new IOException(String.format("Failed to create parent folder(s) '%s'", file.getAbsolutePath()));
 			}
 		}
 

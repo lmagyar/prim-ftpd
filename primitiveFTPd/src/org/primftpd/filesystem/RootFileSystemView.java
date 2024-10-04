@@ -19,7 +19,7 @@ public abstract class RootFileSystemView<TFile extends RootFile<TMina, ? extends
         this.shell = shell;
     }
 
-    final Shell.Interactive getShell() {
+    public final Shell.Interactive getShell() {
         return shell;
     }
 
