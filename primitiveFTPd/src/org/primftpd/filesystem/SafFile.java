@@ -207,7 +207,7 @@ public abstract class SafFile<TMina, TFileSystemView extends SafFileSystemView> 
         logger.trace("[{}] move({})", name, destination.getAbsolutePath());
         // check if file is renamed in same dir as move to other dir is not supported by documentFile
         boolean isRename = Utils.parent(this.absPath).equals(Utils.parent(destination.getAbsolutePath()));
-        if (writable && documentFile != null && isRename) {
+        if (isWritable() && documentFile != null && isRename) {
             postClientAction(ClientActionEvent.ClientAction.RENAME);
             return documentFile.renameTo(destination.getName());
         }
