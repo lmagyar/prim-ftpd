@@ -15,16 +15,28 @@ public class MediaScannerClient implements MediaScannerConnectionClient {
 
     public MediaScannerClient(Context context) {
         this.connection = new MediaScannerConnection(context, this);
+
+        try {
+            // Android 11 (API level 30) and higher: this makes the connection, and isConnected() is constant true from now on
+            // Android 10 (API level 29) and lower: this initiates the connection, and we have to wait onMediaScannerConnected() before calling scanFile()
+            connection.connect();
+        } catch (Exception e) {
+            logger.warn("media scanner connection error (reconnecting later on first use) '{}'", e.toString());
+        }
     }
 
-    public void ensureConnected() {
+    private void ensureConnected() {
         synchronized (connection) {
+            // Android 11 (API level 30) and higher: isConnected() is constant true (we called connect() in the ctor above)
+            // Android 10 (API level 29) and lower: we have to wait onMediaScannerConnected() before calling scanFile()
             while (!connection.isConnected()) {
                 try {
+                    // calling connect() multiple times, even on an already connected connection, doesn't cause any problem
                     connection.connect();
-                    connection.wait();
+                    // if we somehow miss a notifyAll(), better to use a timeout and retry
+                    connection.wait(500);
                 } catch (Exception e) {
-                    logger.error("  media scanning connection error '{}'", e.toString());
+                    logger.warn("  media scanner connection error (reconnecting) '{}'", e.toString());
                 }
             }
         }
@@ -33,7 +45,7 @@ public class MediaScannerClient implements MediaScannerConnectionClient {
     @Override
     public void onMediaScannerConnected() {
         synchronized (connection) {
-            connection.notify();
+            connection.notifyAll();
         }
     }
 
@@ -41,9 +53,11 @@ public class MediaScannerClient implements MediaScannerConnectionClient {
         logger.info("media scanning started for file '{}'", path);
         try {
             ensureConnected();
+            // Android 11 (API level 30) and higher: executes the scan task asynchronously
+            // Android 10 (API level 29) and lower: just requests the scan
             connection.scanFile(path, null);
         } catch (Exception e) {
-            logger.error("  media scanning error '{}' for file '{}'", e.toString(), path);
+            logger.error("  media scanning start error '{}' for file '{}'", e.toString(), path);
         }
     }
 

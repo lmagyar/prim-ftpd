@@ -24,8 +24,6 @@ public abstract class FsFileSystemView<TFile extends FsFile<TMina, ? extends FsF
 		this.mediaScannerClient = new MediaScannerClient(pftpdService.getContext());
 		this.safTimeResolution = StorageManagerUtil.getFilesystemTimeResolutionForTreeUri(safStartUrl);
 		this.safVolumePath = safTimeResolution != 1 ? StorageManagerUtil.getVolumePathFromTreeUri(safStartUrl, pftpdService.getContext()) : null;
-
-		mediaScannerClient.ensureConnected();
 	}
 
 	public final MediaScannerClient getMediaScannerClient() {

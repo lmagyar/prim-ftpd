@@ -19,8 +19,6 @@ public abstract class RootFileSystemView<TFile extends RootFile<TMina, ? extends
         super(pftpdService);
         this.mediaScannerClient = new MediaScannerClient(pftpdService.getContext());
         this.shell = shell;
-
-		mediaScannerClient.ensureConnected();
     }
 
     public final MediaScannerClient getMediaScannerClient() {
