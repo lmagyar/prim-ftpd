@@ -69,8 +69,8 @@ your files through this server you might have to grant it 'all files access' per
 
 To be able to allow 'All files access' an app must declare `android.permission.MANAGE_EXTERNAL_STORAGE` in it's manifest file.
 Google has a policy wether an app is allowed to declare that permission and be published on Google Play.
-As you can see below this app is considered as not compliant.
+As you can see below this app is considered as not compliant (which is not relevant anymore).
 
-Mail from Google:
+Mail from Google (has been relevant as long as the app has been available on Google Play):
 
 ![google play policy mail](fastlane/img/google-play-policy-mail.png)
