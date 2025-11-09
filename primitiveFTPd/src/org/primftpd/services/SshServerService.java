@@ -90,11 +90,11 @@ public class SshServerService extends AbstractServerService
 	@Override
 	protected void stopServer()
 	{
+		if (sshServer == null) {
+			logger.info("ssh server already null");
+			return;
+		}
 		try {
-			if (sshServer == null) {
-				logger.info("ssh server already null");
-				return;
-			}
 			List<AbstractSession> activeSessions = sshServer.getActiveSessions();
 			for (AbstractSession session : activeSessions) {
 				try {
@@ -103,10 +103,19 @@ public class SshServerService extends AbstractServerService
 					logger.error("could not end active session", e);
 				}
 			}
+		} catch (Exception e) {
+			logger.info("could not get active sessions on server stop. {}, {}",
+				e.getClass().getCanonicalName(), e.getMessage());
+		}
+		try {
 			sshServer.stop(true);
+		} catch (Exception e) {
+			logger.info("exception on server.stop().", e);
+		}
+		try {
 			sshServer.close(true);
-		} catch (InterruptedException e) {
-			logger.error("could not stop ssh server", e);
+		} catch (Exception e) {
+			logger.info("exception on server.close().", e);
 		}
 		sshServer = null;
 	}
@@ -124,11 +133,12 @@ public class SshServerService extends AbstractServerService
 		// causes exception when not set
 		sshServer.setIoServiceFactoryFactory(new MinaServiceFactoryFactory());
 
+		PftpdService pftpdService = this;
 		sshServer.setSessionFactory(new SessionFactory() {
 			@Override
 			protected AbstractSession createSession(IoSession ioSession) throws Exception {
 				SocketAddress remoteAddress = ioSession.getRemoteAddress();
-				boolean ipAllowed = RemoteIpChecker.ipAllowed(remoteAddress, prefsBean, logger);
+				boolean ipAllowed = RemoteIpChecker.ipAllowed(remoteAddress, pftpdService, logger);
 				return ipAllowed ? super.createSession(ioSession) : null;
 			}
 		});
