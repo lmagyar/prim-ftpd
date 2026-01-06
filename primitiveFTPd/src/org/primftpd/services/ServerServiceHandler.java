@@ -94,7 +94,8 @@ public class ServerServiceHandler extends Handler
 						true,
 						service.prefsBean,
 						service.keyFingerprintProvider,
-						service.quickShareBean);
+						service.quickShareBean,
+						service.chosenIp);
 				service.startForeground(NotificationUtil.NOTIFICATION_ID, notification);
 			} else {
 				service.stopSelf();
@@ -122,6 +123,7 @@ public class ServerServiceHandler extends Handler
 				service,
 				false,
 				service.prefsBean,
+				null,
 				null,
 				null);
 	}
@@ -159,7 +161,11 @@ public class ServerServiceHandler extends Handler
 	private synchronized void shellClose() {
 		if (shell != null) {
 			logger.debug("closing root shell ({})", logName);
-			shell.close();
+			try {
+				shell.close();
+			} catch (Exception e) {
+				logger.warn("error on closing shell", e);
+			}
 			shell = null;
 		}
 	}

@@ -30,6 +30,7 @@ import android.view.ViewGroup;
 import android.view.ViewManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -49,6 +50,7 @@ import org.primftpd.events.ServerStateChangedEvent;
 import org.primftpd.prefs.LoadPrefsUtil;
 import org.primftpd.prefs.PrefsBean;
 import org.primftpd.prefs.StorageType;
+import org.primftpd.util.IpAddressBean;
 import org.primftpd.util.IpAddressProvider;
 import org.primftpd.util.KeyFingerprintBean;
 import org.primftpd.util.KeyFingerprintProvider;
@@ -60,7 +62,10 @@ import org.primftpd.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Executors;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -93,11 +98,14 @@ public class PftpdFragment extends Fragment implements RecreateLogger, RadioGrou
 	private ServersRunningBean serversRunning;
 	private long timestampOfLastEvent = 0;
 
+	private ProgressBar addressesLoading;
 	private TextView clientActionView1;
 	private TextView clientActionView2;
 	private TextView clientActionView3;
 
 	private boolean onStartOngoing = false;
+
+	private String chosenIp;
 
 	protected int getLayoutId() {
 		return R.layout.main;
@@ -159,7 +167,8 @@ public class PftpdFragment extends Fragment implements RecreateLogger, RadioGrou
 			ServicesStartStopUtil.startServers(this);
 		}
 
-		// init client action views
+		// init views (laoding & client action texts)
+		addressesLoading = view.findViewById(R.id.addressesLoading);
 		clientActionView1 = view.findViewById(R.id.clientActionsLine1);
 		clientActionView2 = view.findViewById(R.id.clientActionsLine2);
 		clientActionView3 = view.findViewById(R.id.clientActionsLine3);
@@ -188,7 +197,7 @@ public class PftpdFragment extends Fragment implements RecreateLogger, RadioGrou
         super.onStart();
 
         logger.debug("onStart()");
-		onStartOngoing = true;
+        onStartOngoing = true;
 
         loadPrefs();
         showLogindata();
@@ -231,7 +240,7 @@ public class PftpdFragment extends Fragment implements RecreateLogger, RadioGrou
             }
         }
 
-		onStartOngoing = false;
+        onStartOngoing = false;
     }
 
 	@Override
@@ -252,11 +261,19 @@ public class PftpdFragment extends Fragment implements RecreateLogger, RadioGrou
 		checkSafAccess();
 
 		// validate bind IP
-		if (!ipAddressProvider.isIpAvail(prefsBean.getBindIp())) {
-			String msg = "IP " + prefsBean.getBindIp() +
-					" is currently not assigned to an interface. May lead to a crash.";
-			Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
+		View view = getView();
+		if (view == null) {
+			return;
 		}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			if (!ipAddressProvider.isIpAvail(prefsBean.getBindIp())) {
+				String msg = "IP " + prefsBean.getBindIp() +
+						" is currently not assigned to an interface. May lead to a crash.";
+				view.post(() -> {
+					Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
+				});
+			}
+		});
 	}
 
 	@Override
@@ -457,21 +474,76 @@ public class PftpdFragment extends Fragment implements RecreateLogger, RadioGrou
 		if (view == null) {
 			return;
 		}
-		LinearLayout container = view.findViewById(R.id.addressesContainer);
 
 		// clear old entries
+		LinearLayout container = view.findViewById(R.id.addressesContainer);
 		container.removeAllViews();
 
-		boolean isLeftToRight = isLeftToRight();
-		List<String> displayTexts = ipAddressProvider.ipAddressTexts(getContext(), true, isLeftToRight);
-		for (String displayText : displayTexts) {
-			TextView textView = new TextView(container.getContext());
-			container.addView(textView);
-			textView.setText(displayText);
-			textView.setGravity(Gravity.CENTER_HORIZONTAL);
-			textView.setTextIsSelectable(true);
-		}
+		// show spinner
+		addressesLoading.setVisibility(View.VISIBLE);
 
+		Executors.newSingleThreadExecutor().execute(() -> {
+			doShowAddresses(view, container);
+		});
+	}
+
+	protected void doShowAddresses(View view, LinearLayout container) {
+		SharedPreferences prefs = LoadPrefsUtil.getPrefs(getContext());
+		boolean chooseBindIp = prefs.getBoolean(
+				LoadPrefsUtil.PREF_KEY_CHOOSE_BIND_IP,
+				Boolean.FALSE);
+
+		final RadioGroup[] radioGroupHolder = new RadioGroup[1];
+		RadioGroup radioGroup = null;
+		final Map<Integer, String> radioButtonIdToIpaddr = new HashMap<>();
+		if (chooseBindIp) {
+			radioGroup = new RadioGroup(this.getContext());
+		} else {
+			// reset chosenIp, if user has diabled the preference again
+			this.chosenIp = null;
+		}
+		radioGroupHolder[0] = radioGroup;
+
+		boolean isLeftToRight = isLeftToRight();
+		List<IpAddressBean> ipAddressBeans = ipAddressProvider.ipAddressTexts(getContext(), true, isLeftToRight);
+
+		view.post(() -> {
+			addressesLoading.setVisibility(View.GONE);
+
+			int idx = 42;
+			for (IpAddressBean ipAddressBean : ipAddressBeans) {
+				if (chooseBindIp) {
+					RadioButton radio = new RadioButton(this.getContext());
+					radioGroupHolder[0].addView(radio);
+					radio.setText(ipAddressBean.getDisplayName());
+					radio.setId(idx);
+					radioButtonIdToIpaddr.put(idx, ipAddressBean.getIpAddress());
+					if (this.chosenIp != null) {
+						if (ipAddressBean.getIpAddress().equals(this.chosenIp)) {
+							radio.setChecked(true);
+						}
+					} else if (ipAddressBean.getIpAddress().equals(prefsBean.getBindIp())) {
+						radio.setChecked(true);
+					}
+					idx = idx + 1;
+				} else {
+					TextView textView = new TextView(container.getContext());
+					container.addView(textView);
+					textView.setText(ipAddressBean.getDisplayName());
+					textView.setGravity(Gravity.CENTER_HORIZONTAL);
+					textView.setTextIsSelectable(true);
+				}
+			}
+
+			if (chooseBindIp) {
+				container.addView(radioGroupHolder[0]);
+
+				PftpdFragment fragment = this;
+				radioGroupHolder[0].setOnCheckedChangeListener((group, checkedId) ->
+						fragment.chosenIp = radioButtonIdToIpaddr.get(checkedId)
+				);
+			}
+		});
 	}
 
 	@SuppressLint("SetTextI18n")
@@ -518,7 +590,7 @@ public class PftpdFragment extends Fragment implements RecreateLogger, RadioGrou
 		}
 
 		TextView usernameView = view.findViewById(R.id.usernameTextView);
-		usernameView.setText(prefsBean.getUserName());
+		usernameView.setText(getString(R.string.usernameLabel, prefsBean.getUserName()));
 
 		TextView anonymousView = view.findViewById(R.id.anonymousLoginTextView);
 		anonymousView.setText(getString(R.string.isAnonymous, prefsBean.isAnonymousLogin()));
@@ -823,5 +895,9 @@ public class PftpdFragment extends Fragment implements RecreateLogger, RadioGrou
 	@Override
 	public void recreateLogger() {
 		this.logger = LoggerFactory.getLogger(getClass());
+	}
+
+	public String getChosenIp() {
+		return chosenIp;
 	}
 }

@@ -38,6 +38,7 @@ public class LoadPrefsUtil
 	public static final String PREF_KEY_LOGGING = "loggingPref";
 	public static final String PREF_KEY_FTP_PASSIVE_PORTS = "ftpPassivePortsPref";
 	public static final String PREF_KEY_BIND_IP = "bindIpPref";
+	public static final String PREF_KEY_CHOOSE_BIND_IP = "chooseIpToBindToPref";
 	public static final String PREF_KEY_IDLE_TIMEOUT = "idleTimeoutPref";
 
 	public static final String PREF_KEY_IDLE_TIMEOUT_SERVER_STOP = "idleTimeoutServerStopPref";
