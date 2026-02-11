@@ -1,6 +1,5 @@
 package org.primftpd.pojo;
 
-import org.apache.commons.codec.binary.Base64;
 import org.bouncycastle.jcajce.provider.asymmetric.edec.BCEdDSAPublicKey;
 import org.junit.Assert;
 import org.junit.Test;
@@ -8,8 +7,8 @@ import org.junit.Test;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
-import java.security.interfaces.DSAPublicKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
@@ -20,10 +19,10 @@ public class KeyParserTests {
     @Test
     public void noSpaceInKey() throws Exception {
         String key = "no-space";
-        InputStream is = new ByteArrayInputStream(key.getBytes("UTF8"));
+        InputStream is = new ByteArrayInputStream(key.getBytes(StandardCharsets.UTF_8));
 
         List<String> errors = new ArrayList<>();
-        List<PublicKey> keys = KeyParser.parsePublicKeys(is, new CommonsBase64Decoder(), errors);
+        List<PublicKey> keys = KeyParser.parsePublicKeys(is, errors);
 
         Assert.assertTrue(keys.isEmpty());
         Assert.assertTrue(errors.isEmpty());
@@ -34,20 +33,9 @@ public class KeyParserTests {
         InputStream is = getClass().getResourceAsStream("/keys/rsa.key.pub");
 
         List<String> errors = new ArrayList<>();
-        List<PublicKey> keys = KeyParser.parsePublicKeys(is, new CommonsBase64Decoder(), errors);
+        List<PublicKey> keys = KeyParser.parsePublicKeys(is, errors);
 
         assertsRsaKey((RSAPublicKey)keys.get(0));
-        Assert.assertTrue(errors.isEmpty());
-    }
-
-    @Test
-    public void parsePubKeyDsa() throws Exception {
-        InputStream is = getClass().getResourceAsStream("/keys/dsa.key.pub");
-
-        List<String> errors = new ArrayList<>();
-        List<PublicKey> keys = KeyParser.parsePublicKeys(is, new CommonsBase64Decoder(), errors);
-
-        assertsDsaKey((DSAPublicKey)keys.get(0));
         Assert.assertTrue(errors.isEmpty());
     }
 
@@ -56,7 +44,7 @@ public class KeyParserTests {
         InputStream is = getClass().getResourceAsStream("/keys/ecdsa.key.pub");
 
         List<String> errors = new ArrayList<>();
-        List<PublicKey> keys = KeyParser.parsePublicKeys(is, new CommonsBase64Decoder(), errors);
+        List<PublicKey> keys = KeyParser.parsePublicKeys(is, errors);
 
         assertsEcdsaKey((ECPublicKey)keys.get(0));
         Assert.assertTrue(errors.isEmpty());
@@ -67,7 +55,7 @@ public class KeyParserTests {
         InputStream is = getClass().getResourceAsStream("/keys/ecdsa.key.pub.384");
 
         List<String> errors = new ArrayList<>();
-        List<PublicKey> keys = KeyParser.parsePublicKeys(is, new CommonsBase64Decoder(), errors);
+        List<PublicKey> keys = KeyParser.parsePublicKeys(is, errors);
 
         assertsEcdsaKey384((ECPublicKey)keys.get(0));
         Assert.assertTrue(errors.isEmpty());
@@ -78,7 +66,7 @@ public class KeyParserTests {
         InputStream is = getClass().getResourceAsStream("/keys/ecdsa.key.pub.521");
 
         List<String> errors = new ArrayList<>();
-        List<PublicKey> keys = KeyParser.parsePublicKeys(is, new CommonsBase64Decoder(), errors);
+        List<PublicKey> keys = KeyParser.parsePublicKeys(is, errors);
 
         assertsEcdsaKey521((ECPublicKey)keys.get(0));
         Assert.assertTrue(errors.isEmpty());
@@ -89,7 +77,7 @@ public class KeyParserTests {
         InputStream is = getClass().getResourceAsStream("/keys/ed25519.key.pub");
 
         List<String> errors = new ArrayList<>();
-        List<PublicKey> keys = KeyParser.parsePublicKeys(is, new CommonsBase64Decoder(), errors);
+        List<PublicKey> keys = KeyParser.parsePublicKeys(is, errors);
 
         for (PublicKey key : keys) {
             System.out.println("key type: " + key.getClass().getName());
@@ -103,15 +91,14 @@ public class KeyParserTests {
         InputStream is = getClass().getResourceAsStream("/keys/authorized_keys");
 
         List<String> errors = new ArrayList<>();
-        List<PublicKey> keys = KeyParser.parsePublicKeys(is, new CommonsBase64Decoder(), errors);
+        List<PublicKey> keys = KeyParser.parsePublicKeys(is, errors);
 
-        Assert.assertEquals(6, keys.size());
+        Assert.assertEquals(5, keys.size());
         assertsRsaKey((RSAPublicKey)keys.get(0));
-        assertsDsaKey((DSAPublicKey)keys.get(1));
-        assertsEcdsaKey((ECPublicKey)keys.get(2));
-        assertsEcdsaKey384((ECPublicKey)keys.get(3));
-        assertsEcdsaKey521((ECPublicKey)keys.get(4));
-        assertsEd25519((BCEdDSAPublicKey)keys.get(5));
+        assertsEcdsaKey((ECPublicKey)keys.get(1));
+        assertsEcdsaKey384((ECPublicKey)keys.get(2));
+        assertsEcdsaKey521((ECPublicKey)keys.get(3));
+        assertsEd25519((BCEdDSAPublicKey)keys.get(4));
 
         Assert.assertEquals(1, errors.size());
         System.out.println(errors.get(0));
@@ -131,46 +118,30 @@ public class KeyParserTests {
         Assert.assertEquals(new BigInteger(modulus), pubKey.getModulus());
     }
 
-    protected void assertsDsaKey(DSAPublicKey pubKey) {
-        final String y = "4075820517720311789755060432555041302495713535036194101055101600952719" +
-                "8027506134078097330328538489864134942817893994891118803853518548361792777130885" +
-                "0845452847199857520010376744070518762657897263318144714919719488458432611731877" +
-                "3733795914935443964469170020723158291398484608457816805394280489144894060446820" +
-                "2";
-        final String p = "1562763388678684549676999956870179987376000994454452811488079320239653" +
-                "8931971498715717466033996067243932790630000740882000826960832106054102246126902" +
-                "3050793071435716238554837246001821695252267029019836147068133782812531548770882" +
-                "6153064920839234179080884223223263305562612862165508525479239452754625899807548" +
-                "07";
-        final String q = "1325486242274701569333126235614816814166592776627";
-        final String g = "1053939190524437845710740492266780383434946918308472822218659846206636" +
-                "3468617688992758226678340652253001602083786669177050081112107298337364078312067" +
-                "8593218571928390833559198136388601343715984061418418925932387956796945760464070" +
-                "8605211665506462942166129968135830426818793738520715937903855564717876010412364" +
-                "82";
-
-        Assert.assertEquals(new BigInteger(y), pubKey.getY());
-        Assert.assertEquals(new BigInteger(p), pubKey.getParams().getP());
-        Assert.assertEquals(new BigInteger(q), pubKey.getParams().getQ());
-        Assert.assertEquals(new BigInteger(g), pubKey.getParams().getG());
-    }
-
     protected void assertsEcdsaKey(ECPublicKey pubKey) {
-        final String x = "48439561293906451759052585252797914202762949526041747995844080717082404635286";
-        final String y = "36134250956749795798585127919587881956611106672985015071877198253568414405109";
+        final BigInteger val1 = new BigInteger(
+                "48439561293906451759052585252797914202762949526041747995844080717082404635286");
+        final BigInteger val2 = new BigInteger(
+                "36134250956749795798585127919587881956611106672985015071877198253568414405109");
 
-        Assert.assertEquals(new BigInteger(x), pubKey.getParams().getGenerator().getAffineX());
-        Assert.assertEquals(new BigInteger(y), pubKey.getParams().getGenerator().getAffineY());
+        final BigInteger keyX = pubKey.getParams().getGenerator().getAffineX();
+        final BigInteger keyY = pubKey.getParams().getGenerator().getAffineY();
+
+        Assert.assertEquals(val1, keyX);
+        Assert.assertEquals(val2, keyY);
     }
 
     protected void assertsEcdsaKey384(ECPublicKey pubKey) {
-        final String x = "26247035095799689268623156744566981891852923491109213387815615900925" +
-                "518854738050089022388053975719786650872476732087";
-        final String y = "83257109614890299855467512895201081792878530488613155947092059024805" +
-                "03199884419224438643760392947333078086511627871";
+        final BigInteger val1 = new BigInteger("26247035095799689268623156744566981891852923491" +
+                "109213387815615900925518854738050089022388053975719786650872476732087");
+        final BigInteger val2 = new BigInteger("83257109614890299855467512895201081792878530488" +
+                "61315594709205902480503199884419224438643760392947333078086511627871");
 
-        Assert.assertEquals(new BigInteger(x), pubKey.getParams().getGenerator().getAffineX());
-        Assert.assertEquals(new BigInteger(y), pubKey.getParams().getGenerator().getAffineY());
+        final BigInteger keyX = pubKey.getParams().getGenerator().getAffineX();
+        final BigInteger keyY = pubKey.getParams().getGenerator().getAffineY();
+
+        Assert.assertEquals(val1, keyX);
+        Assert.assertEquals(val2, keyY);
     }
 
     protected void assertsEcdsaKey521(ECPublicKey pubKey) {
@@ -193,12 +164,5 @@ public class KeyParserTests {
         byte[] encoded = pubKey.getEncoded();
 
         Assert.assertArrayEquals(expectedKey, encoded);
-    }
-
-    public static class CommonsBase64Decoder implements Base64Decoder {
-        @Override
-        public byte[] decode(String str) {
-            return Base64.decodeBase64(str);
-        }
     }
 }

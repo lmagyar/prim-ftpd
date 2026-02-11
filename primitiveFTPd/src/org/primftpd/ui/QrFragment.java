@@ -3,7 +3,6 @@ package org.primftpd.ui;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,6 +37,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import androidx.annotation.NonNull;
@@ -93,9 +93,11 @@ public class QrFragment extends Fragment implements RecreateLogger {
 
     protected void draw(String chosenIp) {
         qrLoading.setVisibility(View.VISIBLE);
-        Executors.newSingleThreadExecutor().execute(() -> {
-            doDraw(chosenIp);
-        });
+        try (ExecutorService executorService = Executors.newSingleThreadExecutor()) {
+            executorService.execute(() -> {
+                doDraw(chosenIp);
+            });
+        }
     }
 
     protected void doDraw(String chosenIp) {
@@ -105,10 +107,8 @@ public class QrFragment extends Fragment implements RecreateLogger {
         }
 
         boolean isLeftToRight = true;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            Configuration config = this.getResources().getConfiguration();
-            isLeftToRight = config.getLayoutDirection() == View.LAYOUT_DIRECTION_LTR;
-        }
+        Configuration config = this.getResources().getConfiguration();
+        isLeftToRight = config.getLayoutDirection() == View.LAYOUT_DIRECTION_LTR;
 
         IpAddressProvider ipAddressProvider = new IpAddressProvider();
         List<IpAddressBean> ipAddressBeans = ipAddressProvider.ipAddressTexts(getContext(), false, isLeftToRight);

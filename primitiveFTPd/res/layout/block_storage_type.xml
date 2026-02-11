@@ -1,4 +1,6 @@
-<merge xmlns:android="http://schemas.android.com/apk/res/android">
+<merge
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <LinearLayout
         android:id="@+id/storageContainer"
@@ -91,8 +93,9 @@
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:visibility="gone"
-        android:textIsSelectable="true"
+        android:textIsSelectable="false"
         android:selectAllOnFocus="true"
+        app:drawableRightCompat="?attr/iconRefresh"
         />
 
 </merge>
